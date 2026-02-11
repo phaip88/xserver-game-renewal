@@ -810,7 +810,40 @@ Object.defineProperty(navigator, 'permissions', {
         
         logger.info("📄 README.md 已更新")
     
-    # ---------- 智能检查逻辑 ----------
+    # ---------- 通知消息格式化 ----------
+    def format_notification(self, status: str, details: str = "") -> str:
+        """格式化 Telegram 通知消息"""
+        now_jst = datetime.datetime.now(self.JST)
+        
+        message = "🎮 XServer Game Panel 自动续期\n"
+        message += "=" * 35 + "\n\n"
+        message += f"📊 状态: {status}\n"
+        message += f"🕐 时间: {now_jst.strftime('%Y-%m-%d %H:%M:%S')} (JST)\n\n"
+        
+        if self.expiry_time:
+            message += f"📅 到期时间: {self.expiry_time} (JST)\n"
+            
+            # 计算剩余时间
+            try:
+                expiry_dt = datetime.datetime.strptime(
+                    self.expiry_time, "%Y-%m-%d %H:%M"
+                ).replace(tzinfo=self.JST)
+                remaining_seconds = (expiry_dt - now_jst).total_seconds()
+                remaining_hours = remaining_seconds / 3600
+                days = int(remaining_hours // 24)
+                hours = int(remaining_hours % 24)
+                message += f"⏰ 剩余时间: {days}天 {hours}小时\n"
+            except:
+                pass
+        
+        if self.next_check_time:
+            message += f"🔔 下次检查: {self.next_check_time} (JST)\n"
+        
+        if details:
+            message += f"\n💬 详情: {details}\n"
+        
+        message += "\n" + "=" * 35
+        return message
     def should_run_check(self) -> bool:
         """基于 NEXT_RUN.md 判断是否需要运行检查"""
         next_check_time = self.load_next_run_time()
@@ -863,7 +896,7 @@ Object.defineProperty(navigator, 'permissions', {
                 self.generate_readme()
                 await Notifier.notify(
                     "❌ Game Panel 续期失败",
-                    f"浏览器初始化失败: {self.error_message}"
+                    self.format_notification("❌ 浏览器初始化失败", self.error_message)
                 )
                 return
             
@@ -874,7 +907,7 @@ Object.defineProperty(navigator, 'permissions', {
                 self.generate_readme()
                 await Notifier.notify(
                     "❌ Game Panel 续期失败",
-                    f"登录失败: {self.error_message}"
+                    self.format_notification("❌ 登录失败", self.error_message)
                 )
                 return
             
@@ -885,7 +918,7 @@ Object.defineProperty(navigator, 'permissions', {
                 self.generate_readme()
                 await Notifier.notify(
                     "❌ Game Panel 续期失败",
-                    "无法提取到期时间"
+                    self.format_notification("❌ 无法提取到期时间", "请检查页面结构是否变化")
                 )
                 return
             
@@ -897,9 +930,7 @@ Object.defineProperty(navigator, 'permissions', {
                 self.generate_readme()
                 await Notifier.notify(
                     "ℹ️ Game Panel 尚未到期",
-                    f"当前到期时间: {self.expiry_time}\n"
-                    f"下次检查时间: {self.next_check_time}\n"
-                    f"触发阈值: 剩余 < {Config.TRIGGER_HOUR} 小时"
+                    self.format_notification("ℹ️ 尚未到期", f"触发阈值: 剩余时间 < {Config.TRIGGER_HOUR} 小时")
                 )
                 return
             
@@ -910,7 +941,7 @@ Object.defineProperty(navigator, 'permissions', {
                 self.generate_readme()
                 await Notifier.notify(
                     "❌ Game Panel 续期失败",
-                    f"点击续期按钮失败: {self.error_message}"
+                    self.format_notification("❌ 点击续期按钮失败", self.error_message)
                 )
                 return
             
@@ -924,8 +955,7 @@ Object.defineProperty(navigator, 'permissions', {
             
             await Notifier.notify(
                 "✅ Game Panel 续期成功",
-                f"到期时间: {self.expiry_time}\n"
-                f"下次检查: {self.next_check_time}"
+                self.format_notification("✅ 续期成功", "服务器已成功续期")
             )
         
         finally:
