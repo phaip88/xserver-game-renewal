@@ -381,7 +381,7 @@ Object.defineProperty(navigator, 'permissions', {
         try:
             logger.info("🌐 开始登录 XServer Game Panel")
             await self.page.goto(Config.LOGIN_URL, timeout=30000)
-            await self.human_delay(2, 4)  # 模拟人类查看页面
+            await self.human_delay(3, 8)  # 3-8秒，模拟人类查看页面
             await self.shot("01_login_page")
             
             # 调试：打印页面 HTML 片段
@@ -411,7 +411,7 @@ Object.defineProperty(navigator, 'permissions', {
             
             # 字段1: username (ログインID)
             try:
-                await self.human_delay(0.5, 1.5)  # 模拟思考
+                await self.human_delay(1, 3)  # 1-3秒，模拟思考
                 await self.page.fill("input[name='username']", Config.LOGIN_ID, timeout=5000)
                 logger.info("✅ 用户名字段: name='username'")
             except:
@@ -420,7 +420,7 @@ Object.defineProperty(navigator, 'permissions', {
             
             # 字段2: server_password (ゲームパネルパスワード)
             try:
-                await self.human_delay(0.5, 1.5)  # 模拟思考
+                await self.human_delay(1, 3)  # 1-3秒，模拟思考
                 await self.page.fill("input[name='server_password']", Config.GAME_PASSWORD, timeout=5000)
                 logger.info("✅ 密码字段: name='server_password'")
             except:
@@ -429,7 +429,7 @@ Object.defineProperty(navigator, 'permissions', {
             
             # 字段3: server_identify (ご利用中のドメイン または IPアドレス)
             try:
-                await self.human_delay(0.5, 1.5)  # 模拟思考
+                await self.human_delay(1, 3)  # 1-3秒，模拟思考
                 await self.page.fill("input[name='server_identify']", Config.DOMAIN_OR_IP, timeout=5000)
                 logger.info("✅ 域名/IP字段: name='server_identify'")
             except:
@@ -439,7 +439,7 @@ Object.defineProperty(navigator, 'permissions', {
             await self.shot("02_before_login")
             
             logger.info("📤 提交登录表单...")
-            await self.human_delay(1, 2)  # 模拟检查输入
+            await self.human_delay(2, 5)  # 2-5秒，模拟检查输入
             # 尝试多种提交方式
             try:
                 await self.page.click("button[type='submit']", timeout=5000)
@@ -451,7 +451,7 @@ Object.defineProperty(navigator, 'permissions', {
                     await self.page.press("input[type='password']", "Enter")
                     logger.info("✅ 通过回车键提交")
             
-            await self.human_delay(3, 5)  # 等待页面加载
+            await self.human_delay(5, 10)  # 5-10秒，等待页面加载
             await self.shot("03_after_login")
             
             # 验证登录成功
@@ -758,9 +758,9 @@ Object.defineProperty(navigator, 'permissions', {
                 return False
             
             logger.info("🖱️ 点击アップグレード・期限延長按钮...")
-            await self.human_delay(1, 2)  # 模拟思考
+            await self.human_delay(2, 5)  # 2-5秒，模拟思考
             await extend_btn.click()
-            await self.human_delay(2, 4)  # 等待页面响应
+            await self.human_delay(5, 10)  # 5-10秒，等待页面响应
             await self.shot("05_after_click_extend")
             
             logger.info("✅ 续期按钮点击成功")

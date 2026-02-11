@@ -44,9 +44,9 @@ jobs:
           USE_HEADLESS: "true"
           TRIGGER_HOUR: "23"
         run: |
-          # 随机延迟 0-30 分钟，避免固定时间执行
-          DELAY=$((RANDOM % 1800))
-          echo "随机延迟 $DELAY 秒后执行..."
+          # 随机延迟 0-60 分钟，避免固定时间执行
+          DELAY=$((RANDOM % 3600))
+          echo "随机延迟 $DELAY 秒 ($((DELAY / 60)) 分钟) 后执行..."
           sleep $DELAY
           python xserver_game_panel_renewal.py
       
