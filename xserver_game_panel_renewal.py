@@ -109,16 +109,12 @@ class Notifier:
             return
         try:
             import aiohttp
-            import html
-            
-            # 转义 HTML 特殊字符
-            message = html.escape(message)
             
             url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage"
             data = {
                 "chat_id": Config.TELEGRAM_CHAT_ID,
                 "text": message,
-                "parse_mode": "HTML"
+                # 不使用 parse_mode，避免 HTML 解析问题
             }
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json=data) as resp:
