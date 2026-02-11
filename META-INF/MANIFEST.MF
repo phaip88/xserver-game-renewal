@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Main-Class: minecraft 
-Created-By: 17.0.16 (Eclipse Adoptium)
-
