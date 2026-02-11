@@ -109,6 +109,11 @@ class Notifier:
             return
         try:
             import aiohttp
+            import html
+            
+            # 转义 HTML 特殊字符
+            message = html.escape(message)
+            
             url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage"
             data = {
                 "chat_id": Config.TELEGRAM_CHAT_ID,
