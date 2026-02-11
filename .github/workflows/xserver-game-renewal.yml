@@ -1,0 +1,74 @@
+name: 🎮 XServer Game Server 自动续期
+
+on:
+  schedule:
+    # 每6小时执行一次 (北京时间: 02:00, 08:00, 14:00, 20:00)
+    - cron: '0 */6 * * *'
+  
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      force_renew:
+        description: '强制续期 (忽略时间判断)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  renewal:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 🐍 设置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: 📦 安装 Python 依赖
+        run: |
+          pip install --upgrade pip
+          pip install -r game_requirements.txt
+      
+      - name: 🌐 安装 Playwright 浏览器
+        run: |
+          playwright install chromium
+          playwright install-deps chromium
+      
+      - name: 🚀 运行续期脚本
+        env:
+          XSERVER_EMAIL: ${{ secrets.XSERVER_EMAIL }}
+          XSERVER_PASSWORD: ${{ secrets.XSERVER_PASSWORD }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          SENDER_PASSWORD: ${{ secrets.SENDER_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          USE_HEADLESS: 'true'
+          TRIGGER_HOUR: '23'
+        run: |
+          python3 xserver_game_renewal.py
+      
+      - name: 📊 上传日志和截图
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: renewal-logs-${{ github.run_number }}
+          path: |
+            game_renewal.log
+            *.png
+            game_cache.json
+            README.md
+          retention-days: 30
+      
+      - name: 📝 提交状态报告
+        if: always()
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md game_cache.json || true
+          git diff --staged --quiet || git commit -m "🤖 更新续期状态 [skip ci]"
+          git push || true
