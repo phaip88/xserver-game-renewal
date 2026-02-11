@@ -1,0 +1,68 @@
+name: XServer Game Panel Auto Renewal
+
+on:
+  # 手动触发
+  workflow_dispatch:
+  
+  # 定时触发 - 每天执行一次（脚本内部会智能判断是否需要运行）
+  schedule:
+    - cron: '0 0 * * *'  # 每天 UTC 00:00 (北京时间 08:00)
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright aiohttp
+          playwright install chromium
+          playwright install-deps chromium
+      
+      - name: Run renewal script
+        env:
+          GAME_LOGIN_ID: ${{ secrets.GAME_LOGIN_ID }}
+          GAME_PASSWORD: ${{ secrets.GAME_PASSWORD }}
+          DOMAIN_OR_IP: ${{ secrets.DOMAIN_OR_IP }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          USE_HEADLESS: "true"
+          TRIGGER_HOUR: "23"
+        run: |
+          python xserver_game_panel_renewal.py
+      
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ github.run_number }}
+          path: '*.png'
+          retention-days: 7
+          if-no-files-found: ignore
+      
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ github.run_number }}
+          path: '*.log'
+          retention-days: 7
+          if-no-files-found: ignore
+      
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update renewal status and next run time [skip ci]" && git push)

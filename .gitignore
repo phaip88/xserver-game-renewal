@@ -27,11 +27,14 @@ Thumbs.db
 *.swp
 *~
 
-# XServer 续期脚本相关
-game_renewal.log
-game_cache.json
+# XServer Game Panel 续期脚本相关
+game_panel_renewal.log
+game_panel_cache.json
 *.png
 .env
+
+# 保留 NEXT_RUN.md（需要提交到仓库）
+!NEXT_RUN.md
 
 # Python
 __pycache__/
@@ -42,3 +45,6 @@ __pycache__/
 venv/
 env/
 ENV/
+
+# Playwright
+.playwright/
