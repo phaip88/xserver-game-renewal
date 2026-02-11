@@ -104,6 +104,7 @@ class Notifier:
     @staticmethod
     async def send_telegram(message: str):
         if not all([Config.TELEGRAM_BOT_TOKEN, Config.TELEGRAM_CHAT_ID]):
+            logger.info("ℹ️ Telegram 未配置，跳过通知")
             return
         try:
             import aiohttp
@@ -118,7 +119,10 @@ class Notifier:
                     if resp.status == 200:
                         logger.info("✅ Telegram 通知发送成功")
                     else:
+                        error_text = await resp.text()
                         logger.error(f"❌ Telegram 返回非 200 状态码: {resp.status}")
+                        logger.error(f"❌ 错误详情: {error_text}")
+                        logger.error(f"❌ Chat ID: {Config.TELEGRAM_CHAT_ID}")
         except Exception as e:
             logger.error(f"❌ Telegram 发送失败: {e}")
     
